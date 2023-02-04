@@ -1,9 +1,9 @@
 import type { PageServerLoad } from './$types';
-import { products } from "./data";
+import { loadProducts } from "./data";
 
 export const load = (async () => {
     return {
-        summaries: products.map((product) => ({
+        summaries: (await loadProducts()).map((product) => ({
             sku: product.sku,
             title: product.title,
             imgUrl: product.imgUrl,
