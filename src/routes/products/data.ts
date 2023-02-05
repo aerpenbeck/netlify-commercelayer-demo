@@ -1,42 +1,50 @@
 import { getSalesChannelToken  } from '@commercelayer/js-auth';
-import { CommerceLayer } from '@commercelayer/sdk';
+import { CommerceLayer, type CommerceLayerClient } from '@commercelayer/sdk';
 import type { Sku } from '@commercelayer/sdk/lib/cjs/model';
-import { error } from '@sveltejs/kit';
 
 console.log(`MODE=${import.meta.env.MODE}`);
 console.log(`PROD=${import.meta.env.PROD}`);
 console.log(`DEV=${import.meta.env.DEV}`);
-// console.log(`VITE_CLIENT_ID=${import.meta.env.VITE_CL_CLIENT_ID}`);
-// console.log(`VITE_CL_BASE_URL=${import.meta.env.VITE_CL_BASE_URL}`);
 
 const organization = 'future-shopping';
 const marketId = 12514;
 
-const token = await getSalesChannelToken({
-    clientId: import.meta.env.VITE_CL_CLIENT_ID,
-    endpoint: import.meta.env.VITE_CL_BASE_URL,
-    scope: `market:${marketId}`,
-});
+let accessToken: string;
 
-if (!token?.accessToken) {
-    throw error(401);
+async function cl(): Promise<CommerceLayerClient> {
+	if (!accessToken) {
+		const token = await getSalesChannelToken({
+			clientId: import.meta.env.VITE_CL_CLIENT_ID,
+			endpoint: import.meta.env.VITE_CL_BASE_URL,
+			scope: `market:${marketId}`,
+		});
+		
+		if (!token || !token?.accessToken) {
+			return Promise.reject('Could not obtain Commerce Layer access token');
+		}
+
+		accessToken = token.accessToken;
+	}
+	// TODO check expiry date of token and refresh if necessary
+	
+	// console.log('My access token: ', token.accessToken)
+	// console.log('Expiration date: ', token.expires)
+	
+	return CommerceLayer({
+	  organization: organization,
+	  accessToken: accessToken
+	})
 }
 
-// console.log('My access token: ', token.accessToken)
-// console.log('Expiration date: ', token?.expires)
-
-const cl = CommerceLayer({
-  organization: organization,
-  accessToken: token.accessToken
-})
-
 export async function loadProducts(): Promise<ProductType[]> {
-    const products = await cl.skus.list();
+	const client = await cl();
+    const products = await client.skus.list();
     return products.map((product) => mapSku(product));
 }
 
 export async function loadProduct(id: string): Promise<ProductType | undefined> {
-    const product = await cl.skus.retrieve(id, {include: ['prices']});
+	const client = await cl();
+    const product = await client.skus.retrieve(id, {include: ['prices']});
     if (!product) {
         return undefined;
     }
