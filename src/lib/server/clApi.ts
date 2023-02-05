@@ -27,7 +27,7 @@ export async function cl(): Promise<CommerceLayerClient> {
         expires = token.expires
     }
 
-    if (expires && (Math.abs(expires.getTime() - Date.now()) / 1000) <= 10) {
+    if (expires && Math.abs(expires.getTime() - Date.now()) / 1000 <= 10) {
         if (refreshToken) {
             const token = await getRefreshToken({
                 clientId: import.meta.env.VITE_CL_CLIENT_ID,
@@ -45,7 +45,6 @@ export async function cl(): Promise<CommerceLayerClient> {
         } else {
             return Promise.reject('Could not refresh Commerce Layer access token')
         }
-
     }
 
     return CommerceLayer({

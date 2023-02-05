@@ -1,6 +1,6 @@
 import type { Sku } from '@commercelayer/sdk/lib/cjs/model'
-import type { ProductType } from './types'
-import { cl } from '../clApi'
+import type { ProductType } from '$lib/types'
+import { cl } from '$lib/server/clApi'
 
 export async function loadProducts(): Promise<ProductType[]> {
     const client = await cl()

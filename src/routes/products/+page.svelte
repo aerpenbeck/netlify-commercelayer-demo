@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { ProductType } from './data'
+    import type { ProductType } from '$lib/types'
     export let data: { summaries: ProductType[] }
 </script>
 
@@ -7,6 +7,7 @@
     <a href="/">home</a>
     <a href="/products">products</a>
 </nav>
+
 <h1 class="text-3xl font-bold">Browse our fancy Products!</h1>
 
 <div class="bg-white">
@@ -35,9 +36,7 @@
                                     {title}
                                 </a>
                             </h3>
-                            <p class="mt-1 text-sm text-gray-500">{color}</p>
                         </div>
-                        <p class="text-sm font-medium text-gray-900">{price}</p>
                     </div>
                 </div>
             {/each}
