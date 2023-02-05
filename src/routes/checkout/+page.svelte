@@ -1,3 +1,7 @@
+<script lang="ts">
+    export let data: { orderId: string }
+</script>
+
 <nav class="bg-gray-800">
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div class="relative flex h-16 items-center justify-between">
@@ -19,8 +23,8 @@
                         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
                         <a
                             href="/"
-                            class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-                            aria-current="page">Home</a
+                            class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                            >Home</a
                         >
                         <a
                             href="/products"
@@ -29,8 +33,8 @@
                         >
                         <a
                             href="/cart"
-                            class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                            >Cart</a
+                            class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
+                            aria-current="page">Cart</a
                         >
                     </div>
                 </div>
@@ -39,10 +43,6 @@
     </div>
 </nav>
 
-<h1 class="text-3xl font-bold underline">Welcome to SvelteKit with Commerce Layer on Netlify!</h1>
+<h1 class="text-3xl font-bold">Thank you for buying at Future Shopping</h1>
 
-<style lang="postcss">
-    :global(html) {
-        background-color: theme(colors.gray.100);
-    }
-</style>
+<h2>OrderId: {data.orderId}</h2>

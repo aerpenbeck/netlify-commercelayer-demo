@@ -6,3 +6,12 @@ export type ProductType = {
     description?: string
     imgUrl?: string
 }
+
+export type CartItem = {
+    id: string
+    title: string
+    sku: string
+    quantity: number
+}
+
+export type Cart = CartItem[]
