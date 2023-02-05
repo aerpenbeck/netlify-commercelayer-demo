@@ -8,8 +8,13 @@
 
 ## Uses
 
+-   [Commerce Layer](https://commercelayer.io/developers)
 -   [Commerce Layer SDK](https://github.com/commercelayer/commercelayer-sdk)
 -   [Commerce Layer JS Auth](https://github.com/commercelayer/commercelayer-js-auth)
+-   [Netlify](https://docs.netlify.com/)
+-   [SvelteKit](https://kit.svelte.dev)
+-   [Tailwind CSS](https://tailwindcss.com/docs/installation)
+-   [Vite](https://vitejs.dev/guide/)
 
 ## Setup
 
@@ -17,4 +22,10 @@
 $ nvm use
 $ npm install -g @commercelayer/cli
 $ npm install -g netlify-cli
+```
+
+## Build
+
+```bash
+$ npm run dev
 ```
