@@ -17,6 +17,10 @@ export const load = (async ({ params }) => {
 export const actions = {
     addToCart: (async ({ cookies, request }) => {
         const data = await request.formData()
-        addToCart(cookies.get('userid'), getFormValue(data, 'sku'), getFormValue(data, 'title'))
+        const product = await loadProduct(getFormValue(data, 'sku'))
+        if (!product) {
+            throw error(404)
+        }
+        await addToCart(cookies.get('userid'), product)
     }) satisfies Action,
 }

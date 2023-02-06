@@ -8,7 +8,10 @@ export async function loadProducts(): Promise<ProductType[]> {
     return products.map((product) => mapSku(product))
 }
 
-export async function loadProduct(id: string): Promise<ProductType | undefined> {
+export async function loadProduct(id: string | undefined): Promise<ProductType | undefined> {
+    if (!id) {
+        return undefined
+    }
     const client = await cl()
     const product = await client.skus.retrieve(id, { include: ['prices'] })
     if (!product) {

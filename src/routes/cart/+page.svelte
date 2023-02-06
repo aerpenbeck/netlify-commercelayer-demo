@@ -48,7 +48,7 @@
 
 <div class="bg-white">
     <ol>
-        {#each data.cart as { title, quantity, id }}
+        {#each data.cart.items as { title, quantity, id }}
             <li>
                 {quantity} * {title}
                 <form method="POST" action="?/removeFromCart">
@@ -58,10 +58,12 @@
             </li>
         {/each}
     </ol>
+    {#if data.cart.items.length > 0}
     <form method="POST" action="?/clearCart">
         <button aria-label="Clear cart">🔄</button>
     </form>
     <form method="POST" action="/checkout">
         <button aria-label="Checkout">💸</button>
     </form>
+    {/if}
 </div>

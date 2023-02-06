@@ -1,7 +1,8 @@
-import type { Cart } from '$lib/types'
+import type { Cart, ProductType } from '$lib/types'
 import { error } from '@sveltejs/kit'
 import { saveOrder } from './order'
-// import { cl } from '$lib/server/clApi'
+import { cl } from '$lib/server/clApi'
+import type { Order } from '@commercelayer/sdk'
 
 const cartDb = new Map<string, Cart>()
 
@@ -11,49 +12,78 @@ export function getCart(userId: string | undefined): Cart {
     }
     let cart = cartDb.get(userId)
     if (!cart) {
-        cart = []
+        cart = {
+            items: []
+        }
         cartDb.set(userId, cart)
     }
     return cart
 }
 
-export function clearCart(userId: string | undefined): Cart {
+export async function clearCart(userId: string | undefined): Promise<Cart> {
     if (!userId) {
         throw error(400)
     }
     const cart = getCart(userId)
-    cart.length = 0
+    cart.items.length = 0
+    // TODO delete cart/order
+    // if (cart.id) {
+    //     const client = await cl()
+    //     client.orders.delete(cart.id)
+    // }
     cartDb.set(userId, cart)
     return cart
 }
 
-export function addToCart(
+export async function addToCart(
     userId: string | undefined,
-    sku: string | undefined,
-    title: string | undefined,
+    product: ProductType,
     quantity = 1
-): Cart {
-    if (!userId || !sku || !title) {
+): Promise<Cart> {
+    if (!userId) {
         throw error(400)
     }
     const cart = getCart(userId)
-    cart.push({
+    cart.items.push({
         id: crypto.randomUUID(),
-        sku,
-        title,
+        sku: product.sku,
+        title: product.title,
         quantity,
+    })
+    const client = await cl()
+    let order: Order
+    if (!cart.id) {
+        order = await client.orders.create({})
+        cart.id = order.id
+        console.log(`Created new Order '${order.number}'`)
+    } else {
+        order = await client.orders.retrieve(cart.id)
+        console.log(`Using Order '${order.number}'`)
+    }
+    await client.line_items.create({
+        quantity,
+        name: product.title,
+        image_url: product.imgUrl,
+        order: {
+            type: 'orders',
+            id: cart.id,
+        },
+        item: {
+            type: 'skus',
+            id: product.sku,
+        }
     })
     return cart
 }
 
-export function removeFromCart(userId: string | undefined, cartItemId: string | undefined): Cart {
+export async function removeFromCart(userId: string | undefined, cartItemId: string | undefined): Promise<Cart> {
     if (!userId || !cartItemId) {
         throw error(400)
     }
     const cart = getCart(userId)
-    const index = cart.findIndex((item) => item.id === cartItemId)
+    const index = cart.items.findIndex((item) => item.id === cartItemId)
     if (index !== -1) {
-        cart.splice(index, 1)
+        cart.items.splice(index, 1)
     }
     return cart
 }
@@ -63,13 +93,13 @@ export async function checkout(userId: string | undefined): Promise<string | und
         throw error(400)
     }
     const cart = getCart(userId)
-    if (cart.length > 0) {
-        console.log(`TODO create Commerce Layer cart and place order for '${userId}`)
-        // const client = await cl()
-        // TODO client.orders.create()
-        const orderId = crypto.randomUUID()
-        saveOrder(userId, orderId)
-        clearCart(userId)
+    if (cart.items.length > 0) {
+        const cart = getCart(userId)
+        const orderId = cart.id
+        if (orderId) {
+            saveOrder(userId, orderId)
+            clearCart(userId)
+        }
         return orderId
     } else {
         return undefined
