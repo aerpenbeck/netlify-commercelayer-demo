@@ -1,6 +1,6 @@
 import type { Action } from './$types'
 import { getFormValue } from '$lib/util'
-import type { Address } from '$lib/types';
+import type { Address } from '$lib/types'
 import { clearCart, removeFromCart, setAddress, setEmail } from '$lib/server/cart'
 
 export const actions = {
