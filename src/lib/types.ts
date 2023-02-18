@@ -17,4 +17,17 @@ export type CartItem = {
 export type Cart = {
     id?: string;
     items: CartItem[];
+    email?: string;
+    address?: Address;
+}
+
+export type Address = {
+    firstName?: string;
+    lastName?: string;
+    street?: string;
+    city?: string;
+    region?: string;
+    zipCode?: string;
+    countryCode?: string;
+    phone?: string;
 }

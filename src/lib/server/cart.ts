@@ -1,4 +1,4 @@
-import type { Cart, ProductType } from '$lib/types'
+import type { Address, Cart, ProductType } from '$lib/types'
 import { error } from '@sveltejs/kit'
 import { saveOrder } from './order'
 import { cl } from '$lib/server/clApi'
@@ -13,7 +13,7 @@ export function getCart(userId: string | undefined): Cart {
     let cart = cartDb.get(userId)
     if (!cart) {
         cart = {
-            items: []
+            items: [],
         }
         cartDb.set(userId, cart)
     }
@@ -71,12 +71,15 @@ export async function addToCart(
         item: {
             type: 'skus',
             id: product.sku,
-        }
+        },
     })
     return cart
 }
 
-export async function removeFromCart(userId: string | undefined, cartItemId: string | undefined): Promise<Cart> {
+export async function removeFromCart(
+    userId: string | undefined,
+    cartItemId: string | undefined
+): Promise<Cart> {
     if (!userId || !cartItemId) {
         throw error(400)
     }
@@ -103,5 +106,48 @@ export async function checkout(userId: string | undefined): Promise<string | und
         return orderId
     } else {
         return undefined
+    }
+}
+
+export async function setEmail(userId: string | undefined, email: string | undefined) {
+    if (!userId || !email || email.trim().length === 0) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId) {
+        cart.email = email.trim()
+        const client = await cl()
+        await client.orders.update({
+            id: orderId,
+            customer_email: email.trim(),
+        })
+    }
+}
+
+export async function setAddress(userId: string | undefined, address: Address) {
+    if (!userId) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId) {
+        cart.address = address
+        const client = await cl()
+        const clAddress = await client.addresses.create({
+            first_name: address.firstName,
+            last_name: address.lastName,
+            city: address.city || '',
+            zip_code: address.zipCode || '',
+            line_1: address.street || '',
+            country_code: address.countryCode || '',
+            state_code: address.region || '',
+            phone: address.phone || '',
+        })
+        await client.orders.update({
+            id: orderId,
+            billing_address: { id: clAddress.id, type: 'addresses' },
+            _shipping_address_same_as_billing: true,
+        })
     }
 }
