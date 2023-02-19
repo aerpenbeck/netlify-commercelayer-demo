@@ -1,5 +1,4 @@
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from '@sveltejs/kit'
+import { json, type RequestHandler } from '@sveltejs/kit'
 import CryptoJS from 'crypto-js'
 import hmacSHA256 from 'crypto-js/hmac-sha256'
 

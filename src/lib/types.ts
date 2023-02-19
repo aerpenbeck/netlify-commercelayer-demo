@@ -31,3 +31,10 @@ export type Address = {
     countryCode?: string
     phone?: string
 }
+
+export type ShippingMethod = {
+    id: string;
+    name: string;
+    price: string;
+    shipmentId: string;
+}

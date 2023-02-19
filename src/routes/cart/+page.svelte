@@ -1,5 +1,6 @@
 <script lang="ts">
-    import type { PageData } from './$types'
+    import type { PageData, ActionData } from './$types'
+    export let form: ActionData
     export let data: PageData
 </script>
 
@@ -44,39 +45,41 @@
     </div>
 </nav>
 
+{#if data.cart.items.length > 0}
+
 <h1 class="text-3xl font-bold">Your Shopping Cart!</h1>
 
 <div class="mt-10 sm:mt-0">
-    <ol>
+    <div class="md:grid md:grid-cols-2 md:gap-6">
         {#each data.cart.items as { title, quantity, id }}
-            <li>
-                <div>
-                    {quantity} * {title}
-                    <form method="POST" action="?/removeFromCart">
-                        <input type="hidden" name="id" value={id} />
-                        <button aria-label="Remove from cart">🗑</button>
-                    </form>
-                </div>
-            </li>
+            <div class="md:col-span-1">
+                {quantity} * {title}
+            </div>
+            <div class="md:col-span-1">
+                <form method="POST" action="?/removeFromCart">
+                    <input type="hidden" name="id" value={id} />
+                    <button aria-label="Remove from cart">🗑</button>
+                </form>
+            </div>
         {/each}
-    </ol>
-    {#if data.cart.items.length > 0}
-        <div>
-            <form method="POST" action="?/clearCart">
-                <button aria-label="Clear cart">🔄</button>
-            </form>
-            <form method="POST" action="/checkout">
-                <button aria-label="Checkout">💸</button>
-            </form>
-        </div>
-    {/if}
+    </div>
 </div>
+
+<div class="mt-10 sm:mt-0">
+    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+        <form method="POST" action="?/clearCart">
+            <button type="submit" aria-label="Clear cart">🔄</button>
+        </form>
+    </div>
+</div>
+
+<h2 class="text-2xl font-bold">Checkout</h2>
 
 <div class="mt-10 sm:mt-0">
     <div class="md:grid md:grid-cols-3 md:gap-6">
         <div class="md:col-span-1">
             <div class="px-4 sm:px-0">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Email Address</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900">1. Email Address {#if data.cart.email}✔️{/if}</h3>
                 <p class="mt-1 text-sm text-gray-600">Used for order confirmation</p>
             </div>
         </div>
@@ -116,11 +119,12 @@
     </div>
 </div>
 
+{#if data.cart.email}
 <div class="mt-10 sm:mt-0">
     <div class="md:grid md:grid-cols-3 md:gap-6">
         <div class="md:col-span-1">
             <div class="px-4 sm:px-0">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Billing Address</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900">2. Billing Address {#if data.cart.address}✔️{/if}</h3>
                 <p class="mt-1 text-sm text-gray-600">
                     Where do you want your stuff to be shipped to?
                 </p>
@@ -274,3 +278,57 @@
         </div>
     </div>
 </div>
+{/if}
+
+{#if data.shippingMethods.length > 0}
+<div class="mt-10 sm:mt-0">
+    <div class="md:grid md:grid-cols-3 md:gap-6">
+        <div class="md:col-span-1">
+            <div class="px-4 sm:px-0">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">3. Shipping Method {#if form?.shippingMethodSelected}✔️{/if}</h3>
+                <p class="mt-1 text-sm text-gray-600">Select delivery method of your goods</p>
+            </div>
+        </div>
+        <div class="mt-5 md:col-span-2 md:mt-0">
+            <form method="POST" action="?/setShippingMethod">
+                <div class="overflow-hidden shadow sm:rounded-md">
+                    <div class="bg-white px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-6 gap-6">
+                            <div class="col-span-6 sm:col-span-4">
+                                {#each data.shippingMethods as { id, name, shipmentId, price }}
+                                    <div>
+                                        <input type="hidden" name="shipment-id" value={shipmentId}>
+                                        <input type="radio" id={id} name="shipping-method" value={id}>
+                                        <label for={id}>{name} ({price})</label>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <button
+                            type="submit"
+                            class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >Select</button
+                        >
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/if}
+
+<div class="mt-10 sm:mt-0">
+    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+        <form method="POST" action="/checkout">
+            <button type="submit" aria-label="Checkout">💸</button>
+        </form>
+    </div>
+</div>
+
+{:else}
+
+<h1 class="text-3xl font-bold">Your Shopping Cart is still empty!</h1>
+
+{/if}

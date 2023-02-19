@@ -1,5 +1,6 @@
 <script lang="ts">
-    export let data: { orderId: string }
+    import type { PageData } from './$types'
+    export let data: PageData
 </script>
 
 <nav class="bg-gray-800">

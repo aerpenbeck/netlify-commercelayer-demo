@@ -1,8 +1,8 @@
-import type { Address, Cart, ProductType } from '$lib/types'
+import type { Address, Cart, ProductType, ShippingMethod } from '$lib/types'
 import { error } from '@sveltejs/kit'
 import { saveOrder } from './order'
 import { cl } from '$lib/server/clApi'
-import type { Order } from '@commercelayer/sdk'
+import type { Order, ShippingMethod as CLShippingMethod } from '@commercelayer/sdk'
 
 const cartDb = new Map<string, Cart>()
 
@@ -55,7 +55,7 @@ export async function addToCart(
     if (!cart.id) {
         order = await client.orders.create({})
         cart.id = order.id
-        console.log(`Created new Order '${order.number}'`)
+        console.log(`Created new Order '${order.number}' (${order.id})`)
     } else {
         order = await client.orders.retrieve(cart.id)
         console.log(`Using Order '${order.number}'`)
@@ -148,6 +148,63 @@ export async function setAddress(userId: string | undefined, address: Address) {
             id: orderId,
             billing_address: { id: clAddress.id, type: 'addresses' },
             _shipping_address_same_as_billing: true,
+        })
+    }
+}
+
+export async function getShippingMethods(userId: string | undefined): Promise<ShippingMethod[]> {
+    if (!userId) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId && cart.address) {
+        const client = await cl()
+        const shipments = await client.orders.shipments(orderId, {
+            include: ['available_shipping_methods', 'stock_location'],
+        })
+        if (shipments.length > 0) {
+            // TODO map shipping methods for all shippings
+            const shipment = shipments.get(0)
+            if (shipment) {
+                return (
+                    shipment.available_shipping_methods?.map((sm) =>
+                        mapShippingMethod(shipment.id, sm)
+                    ) || []
+                )
+            }
+        }
+    }
+    return []
+}
+
+function mapShippingMethod(shipmentId: string, shippingMethod: CLShippingMethod): ShippingMethod {
+    return {
+        id: shippingMethod.id,
+        name: shippingMethod.name || '',
+        price: shippingMethod.formatted_price_amount || '',
+        shipmentId,
+    }
+}
+export async function setShippingMethod(
+    userId: string | undefined,
+    shipmentId: string | undefined,
+    shippingMethodId: string | undefined
+) {
+    if (!userId || !shipmentId || !shippingMethodId) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId) {
+        console.log(`Setting shipping method ${shippingMethodId} for shipment ${shipmentId}`)
+        const client = await cl()
+        await client.shipments.update({
+            id: shipmentId,
+            shipping_method: {
+                id: shippingMethodId,
+                type: 'shipping_methods',
+            },
         })
     }
 }

@@ -29,3 +29,11 @@ $ npm install -g netlify-cli
 ```bash
 $ npm run dev
 ```
+
+## Configuration
+
+### Environment Variables
+
+| VITE_CL_CLIENT_ID | CommerceLayer API client ID |
+| VITE_CL_BASE_URL | CommerceLayer API base URL |
+| VITE_CL_SHARED_SECRET | CommerceLayer shared secret for webhook events |

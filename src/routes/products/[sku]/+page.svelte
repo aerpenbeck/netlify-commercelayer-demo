@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { ProductType } from '$lib/types'
-    export let data: { product: ProductType }
+    import type { PageData } from './$types'
+    export let data: PageData
 </script>
 
 <nav class="bg-gray-800">

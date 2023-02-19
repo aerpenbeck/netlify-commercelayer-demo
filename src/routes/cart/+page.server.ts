@@ -1,7 +1,14 @@
-import type { Action } from './$types'
+import type { Action, PageServerLoad } from './$types'
 import { getFormValue } from '$lib/util'
 import type { Address } from '$lib/types'
-import { clearCart, removeFromCart, setAddress, setEmail } from '$lib/server/cart'
+import { clearCart, removeFromCart, setAddress, setEmail, setShippingMethod, getShippingMethods } from '$lib/server/cart'
+
+export const load = (async ({ cookies }) => {
+    const shippingMethods = await getShippingMethods(cookies.get('userid'))
+    return {
+        shippingMethods,
+    }
+}) satisfies PageServerLoad
 
 export const actions = {
     removeFromCart: (async ({ cookies, request }) => {
@@ -14,6 +21,11 @@ export const actions = {
     setEmail: (async ({ cookies, request }) => {
         const data = await request.formData()
         await setEmail(cookies.get('userid'), getFormValue(data, 'email-address'))
+    }) satisfies Action,
+    setShippingMethod: (async ({ cookies, request }) => {
+        const data = await request.formData()
+        await setShippingMethod(cookies.get('userid'), getFormValue(data, 'shipment-id'), getFormValue(data, 'shipping-method'))
+        return { shippingMethodSelected: true }
     }) satisfies Action,
     setAddress: (async ({ cookies, request }) => {
         const data = await request.formData()
