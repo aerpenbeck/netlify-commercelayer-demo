@@ -1,19 +1,15 @@
-import type { Action, PageServerLoad } from './$types'
+import type { Action } from './$types'
 import { checkout } from '$lib/server/cart'
-import { getOrder } from '$lib/server/order'
-
-export const load = (async ({ cookies }) => {
-    const orderId = getOrder(cookies.get('userid'))
-    return {
-        orderId,
-    }
-}) satisfies PageServerLoad
+import { redirect } from '@sveltejs/kit'
 
 export const actions = {
     default: (async ({ cookies }) => {
-        const orderId = await checkout(cookies.get('userid'))
+        const orderNumber = await checkout(cookies.get('userid'))
+        if (!orderNumber) {
+            throw redirect(303, '/cart')
+        }
         return {
-            orderId,
+            orderNumber,
         }
     }) satisfies Action,
 }

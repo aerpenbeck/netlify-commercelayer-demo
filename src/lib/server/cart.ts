@@ -66,7 +66,7 @@ export async function addToCart(
         console.log(`Created new Order '${order.number}' (${order.id})`)
     } else {
         order = await client.orders.retrieve(cart.id)
-        console.log(`Using Order '${order.number}'`)
+        console.log(`Using Order '${order.number}' (${order.id})`)
     }
     await client.line_items.create({
         quantity,
@@ -99,22 +99,38 @@ export async function removeFromCart(
     return cart
 }
 
-export async function checkout(userId: string | undefined): Promise<string | undefined> {
+export async function checkout(userId: string | undefined): Promise<number | undefined> {
     if (!userId) {
         throw error(400)
     }
     const cart = getCart(userId)
-    if (cart.items.length > 0) {
-        const cart = getCart(userId)
-        const orderId = cart.id
-        if (orderId) {
-            saveOrder(userId, orderId)
-            clearCart(userId)
-        }
-        return orderId
+    if (validForPlacement(cart)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const orderId = cart.id!
+        console.log(`Placing order ${orderId}`)
+        const client = await cl()
+        const order = await client.orders.update({
+            id: orderId,
+            _place: true,
+        })
+        saveOrder(userId, orderId)
+        clearCart(userId)
+        return order.number
     } else {
         return undefined
     }
+}
+
+// TODO assertion function
+function validForPlacement(cart: Cart): boolean {
+    return (
+        cart.items.length > 0 &&
+        cart.email !== undefined &&
+        cart.address !== undefined &&
+        cart.paymentMethodSelected === true &&
+        cart.shippingMethodSelected === true &&
+        cart.id !== undefined
+    )
 }
 
 export async function setEmail(userId: string | undefined, email: string | undefined) {
@@ -125,6 +141,7 @@ export async function setEmail(userId: string | undefined, email: string | undef
     const orderId = cart.id
     if (orderId) {
         cart.email = email.trim()
+        console.log(`Setting customer email for order ${orderId}`)
         const client = await cl()
         await client.orders.update({
             id: orderId,
@@ -140,6 +157,7 @@ export async function setAddress(userId: string | undefined, address: Address) {
     const cart = getCart(userId)
     const orderId = cart.id
     if (orderId) {
+        console.log(`Setting billing address for order ${orderId}`)
         cart.address = address
         const client = await cl()
         const clAddress = await client.addresses.create({
@@ -269,7 +287,7 @@ export async function setPaymentMethod(
                 order: {
                     id: orderId,
                     type: 'orders',
-                }
+                },
             })
         }
         cart.paymentMethodSelected = true

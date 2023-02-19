@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { PageData } from './$types'
-    export let data: PageData
+    import type { ActionData } from './$types'
+    export let form: ActionData
 </script>
 
 <nav class="bg-gray-800">
@@ -44,6 +44,8 @@
     </div>
 </nav>
 
-<h1 class="text-3xl font-bold">Thank you for buying at Future Shopping</h1>
+{#if form?.orderNumber}
+    <h1 class="text-3xl font-bold">Thank you for shopping at Future Shopping!</h1>
 
-<h2>OrderId: {data.orderId}</h2>
+    <h2>Your order number: {form?.orderNumber}</h2>
+{/if}
