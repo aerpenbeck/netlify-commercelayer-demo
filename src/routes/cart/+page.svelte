@@ -1,6 +1,5 @@
 <script lang="ts">
-    import type { PageData, ActionData } from './$types'
-    export let form: ActionData
+    import type { PageData } from './$types'
     export let data: PageData
 </script>
 
@@ -66,7 +65,7 @@
 </div>
 
 <div class="mt-10 sm:mt-0">
-    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+    <div class="bg-gray-50 px-4 py-3 text-left sm:px-6">
         <form method="POST" action="?/clearCart">
             <button type="submit" aria-label="Clear cart">🔄</button>
         </form>
@@ -285,7 +284,7 @@
     <div class="md:grid md:grid-cols-3 md:gap-6">
         <div class="md:col-span-1">
             <div class="px-4 sm:px-0">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">3. Shipping Method {#if form?.shippingMethodSelected}✔️{/if}</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900">3. Shipping Method {#if data.cart.shippingMethodSelected}✔️{/if}</h3>
                 <p class="mt-1 text-sm text-gray-600">Select delivery method of your goods</p>
             </div>
         </div>
@@ -319,13 +318,53 @@
 </div>
 {/if}
 
+{#if data.cart.shippingMethodSelected}
 <div class="mt-10 sm:mt-0">
-    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+    <div class="md:grid md:grid-cols-3 md:gap-6">
+        <div class="md:col-span-1">
+            <div class="px-4 sm:px-0">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">4. Payment Method {#if data.cart.paymentMethodSelected}✔️{/if}</h3>
+                <p class="mt-1 text-sm text-gray-600">Select payment method of your order</p>
+            </div>
+        </div>
+        <div class="mt-5 md:col-span-2 md:mt-0">
+            <form method="POST" action="?/setPaymentMethod">
+                <div class="overflow-hidden shadow sm:rounded-md">
+                    <div class="bg-white px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-6 gap-6">
+                            <div class="col-span-6 sm:col-span-4">
+                                {#each data.paymentMethods as { id, name }}
+                                    <div>
+                                        <input type="radio" id={id} name="payment-method" value={id}>
+                                        <label for={id}>{name}</label>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <button
+                            type="submit"
+                            class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >Select</button
+                        >
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/if}
+
+{#if data.cart.paymentMethodSelected}
+<div class="mt-10 sm:mt-0">
+    <div class="bg-gray-50 px-4 py-3 text-left sm:px-6">
         <form method="POST" action="/checkout">
             <button type="submit" aria-label="Checkout">💸</button>
         </form>
     </div>
 </div>
+{/if}
 
 {:else}
 

@@ -19,6 +19,8 @@ export type Cart = {
     items: CartItem[]
     email?: string
     address?: Address
+    shippingMethodSelected?: boolean
+    paymentMethodSelected?: boolean
 }
 
 export type Address = {
@@ -33,8 +35,13 @@ export type Address = {
 }
 
 export type ShippingMethod = {
-    id: string;
-    name: string;
-    price: string;
-    shipmentId: string;
+    id: string
+    name: string
+    price: string
+    shipmentId: string
+}
+
+export type PaymentMethod = {
+    id: string
+    name: string
 }

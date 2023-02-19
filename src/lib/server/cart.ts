@@ -1,8 +1,12 @@
-import type { Address, Cart, ProductType, ShippingMethod } from '$lib/types'
+import type { Address, Cart, PaymentMethod, ProductType, ShippingMethod } from '$lib/types'
 import { error } from '@sveltejs/kit'
 import { saveOrder } from './order'
 import { cl } from '$lib/server/clApi'
-import type { Order, ShippingMethod as CLShippingMethod } from '@commercelayer/sdk'
+import type {
+    Order,
+    PaymentMethod as CLPaymentMethod,
+    ShippingMethod as CLShippingMethod,
+} from '@commercelayer/sdk'
 
 const cartDb = new Map<string, Cart>()
 
@@ -26,6 +30,10 @@ export async function clearCart(userId: string | undefined): Promise<Cart> {
     }
     const cart = getCart(userId)
     cart.items.length = 0
+    cart.paymentMethodSelected = false
+    cart.shippingMethodSelected = false
+    cart.address = undefined
+    cart.email = undefined
     // TODO delete cart/order
     // if (cart.id) {
     //     const client = await cl()
@@ -178,6 +186,24 @@ export async function getShippingMethods(userId: string | undefined): Promise<Sh
     return []
 }
 
+export async function getPaymentMethods(userId: string | undefined): Promise<PaymentMethod[]> {
+    if (!userId) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId) {
+        const client = await cl()
+        const order = await client.orders.retrieve(orderId, {
+            include: ['available_payment_methods'],
+        })
+        if (order.available_payment_methods) {
+            return order.available_payment_methods.map((pm) => mapPaymentMethod(pm))
+        }
+    }
+    return []
+}
+
 function mapShippingMethod(shipmentId: string, shippingMethod: CLShippingMethod): ShippingMethod {
     return {
         id: shippingMethod.id,
@@ -186,6 +212,14 @@ function mapShippingMethod(shipmentId: string, shippingMethod: CLShippingMethod)
         shipmentId,
     }
 }
+
+function mapPaymentMethod(paymentMethod: CLPaymentMethod): PaymentMethod {
+    return {
+        id: paymentMethod.id,
+        name: paymentMethod.name || '',
+    }
+}
+
 export async function setShippingMethod(
     userId: string | undefined,
     shipmentId: string | undefined,
@@ -206,5 +240,38 @@ export async function setShippingMethod(
                 type: 'shipping_methods',
             },
         })
+        cart.shippingMethodSelected = true
+    }
+}
+
+export async function setPaymentMethod(
+    userId: string | undefined,
+    paymentMethodId: string | undefined
+) {
+    if (!userId || !paymentMethodId) {
+        throw error(400)
+    }
+    const cart = getCart(userId)
+    const orderId = cart.id
+    if (orderId) {
+        console.log(`Setting payment method ${paymentMethodId} for order ${orderId}`)
+        const client = await cl()
+        const order = await client.orders.update(
+            {
+                id: orderId,
+                payment_method: { id: paymentMethodId, type: 'payment_methods' },
+            },
+            { include: ['payment_method'] }
+        )
+        if (order.payment_method?.payment_source_type === 'wire_transfers') {
+            console.log(`Creating wire transfer payment source for order ${orderId}`)
+            await client.wire_transfers.create({
+                order: {
+                    id: orderId,
+                    type: 'orders',
+                }
+            })
+        }
+        cart.paymentMethodSelected = true
     }
 }
